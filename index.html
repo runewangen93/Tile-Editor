@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><title>Tilesmith – pixel tilemap editor</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <style>
 :root{--bg:#eef0f6;--p:#fff;--p2:#e6e9f2;--b:#d3d7e4;--t:#1b1d29;--m:#5c6178;--a:#3d5af1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12131a;--p:#1c1e29;--p2:#13141c;--b:#32364a;--t:#e8e9f0;--m:#8b90a7;--a:#7b95ff;color-scheme:dark}}
@@ -60,6 +60,13 @@ select{background:var(--p2);border:1px solid var(--b);border-radius:5px;padding:
 .fl{position:fixed;display:none;z-index:40;width:300px;background:var(--p);color:var(--t);border:1px solid var(--b);border-radius:12px;box-shadow:0 10px 36px #0006}
 .fh{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--b);cursor:grab;user-select:none;touch-action:none;font-size:12px}.fb{padding:10px}#rd{width:390px}#pop{width:250px;z-index:45}
 .rl{flex-wrap:wrap}.rvs{flex-basis:100%;display:flex;gap:4px;align-items:center;padding-left:26px;flex-wrap:wrap}.rvs .rt,.rvs .nt{width:24px;height:24px}
+html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+body{touch-action:manipulation;overscroll-behavior:none}.side{touch-action:pan-y}
+#tip{position:fixed;display:none;z-index:100;max-width:280px;background:var(--t);color:var(--bg);padding:5px 9px;border-radius:7px;font-size:12px;line-height:1.35;pointer-events:none;box-shadow:0 4px 16px #0005}
+#qm{position:fixed;display:none;z-index:70;width:0;height:0}#qm button{position:absolute;transform:translate(-50%,-50%);width:42px;height:42px;border-radius:50%;font-size:19px;padding:0;box-shadow:0 3px 14px #0006}
+#qm .qc{position:absolute;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;background:var(--a);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 3px 14px #0006}
+.vs2{display:inline-flex;flex-direction:column;align-items:center;gap:2px}.wv{width:52px;background:var(--p2);border:1px solid var(--b);border-radius:5px;padding:1px 3px;font-size:11px}.pc{color:var(--m);font-size:10px}
 </style></head><body>
 <header><h1>▦ Tilesmith</h1><button id="nw" title="Start a new project">New…</button>
 <label class="m">Tile <input type="number" id="tn" min="4" max="256" value="16" title="Tile resolution in pixels (4–256)"> px</label>
@@ -72,7 +79,7 @@ select{background:var(--p2);border:1px solid var(--b);border-radius:5px;padding:
 <section class="pn cvp"><div class="ph"><b>Tilemap</b><span class="m" id="hint"></span><span class="sp"></span>
 
 <label class="m">Pen pressure <select id="pm"><option value="size">→ size<option value="alpha">→ opacity<option value="off">off</select></label>
-<button id="mi" title="Mirror inside each tile (X)">⇋</button><button id="lk" title="Alpha lock (K): painting only recolours existing pixels and never changes their alpha, on every tile's active layer. Erasing still works">🔒 Alpha</button><button id="pg" class="on" title="Pixel grid (when zoomed in)">⊞</button><button id="mg" class="on" title="Tile grid">#</button><button id="rv" title="Show which rule placed each tile (V)">Rule IDs</button>
+<button id="mi" title="Mirror inside each tile (X)">⇋</button><button id="lk" title="Alpha lock (K): painting only recolours existing pixels and never changes their alpha, on every tile's active layer. Erasing still works">🔒 Alpha</button><button id="td" title="Finger drawing. On: fingers draw. Off: one finger pans, a tap toggles the eraser, holding opens the quick tool menu; two fingers pan and zoom, a two-finger tap undoes, a three-finger tap redoes. Turns off automatically when an Apple Pencil is detected">☝ Finger draw</button><button id="qb" title="Quick tool menu (`) – also opens with a finger long-press when finger drawing is off">✱ Quick</button><button id="pg" class="on" title="Pixel grid (when zoomed in)">⊞</button><button id="mg" class="on" title="Tile grid">#</button><button id="rv" title="Show which rule placed each tile (V)">Rule IDs</button>
 <button id="fh" title="Flip selected tile layer horizontally">↔</button><button id="fv" title="Flip selected tile layer vertically">↕</button><button id="cl" title="Clear selected tile layer">Clear</button>
 <label class="m"><input type="checkbox" id="eg"> edges solid</label>
 <label class="m" title="Map size in tiles (columns × rows). Resizing keeps the blocks you already placed.">Map <input type="number" id="mw" min="3" max="64"> × <input type="number" id="mh" min="3" max="64"> cells</label><button id="mc2" title="Remove all blocks">Empty map</button>
@@ -91,7 +98,7 @@ select{background:var(--p2);border:1px solid var(--b);border-radius:5px;padding:
 <div><h3>Rules <span class="m" style="text-transform:none;letter-spacing:0">first match wins</span></h3>
 <div class="row" style="margin-bottom:6px"><button id="ra">+ Rule</button><button id="g16">Auto 16</button><button id="g47">Auto 47</button></div>
 <p class="m" style="margin:0 0 6px">Click a neighbour cell to cycle any → solid → empty. Click a rule’s tile to select it; ⇐ assigns the selected tile to that rule.</p><div id="rules"></div></div>
-</aside></main><div id="cm"></div><div id="toast"></div>
+</aside></main><div id="cm"></div><div id="qm"></div><div id="toast"></div>
 <dialog id="kd"><h3>Keyboard shortcuts</h3><div id="kl"></div><p class="m">Click a shortcut, then press the new key combination (Esc cancels). Fixed keys: Enter applies a transform · Esc cancels it or deselects · arrows nudge the selection (Shift = 8 px) · Ctrl+Shift+Z redo · Backspace also deletes · Space-drag pans · Alt-click picks a colour.</p><div class="row"><button id="kr">Reset all</button><button id="kc">Close</button></div></dialog>
 <div id="rd" class="fl"><div class="fh" id="rdh"><b>Replace colour</b><span class="sp"></span><button id="rx" title="Close">✕</button></div><div class="fb">
 <div class="rl"><b style="width:16px">A</b><i class="cs" id="rfs" title="Click to open a colour picker" style="cursor:pointer"></i><input type="text" id="rf" maxlength="7" spellcheck="false"><input type="number" id="rfa" min="0" max="100" title="Alpha %">%<button id="rpf" title="Pick colour A from the map">⌖</button><button data-u="f" title="Use the primary colour">← primary</button></div>
@@ -106,7 +113,7 @@ select{background:var(--p2);border:1px solid var(--b);border-radius:5px;padding:
 const $=s=>document.querySelector(s);
 const NM=['NW','N','NE','W','E','SW','S','SE'],ST=['any','solid','empty'],D=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]],DO={0:[1,3],2:[1,4],5:[6,3],7:[6,4]},H8=[[-1,-1],[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0]];
 let S={T:16,tiles:[],cur:0,rules:[],W:24,H:16,map:[],tm:[],edge:false,col:'#38b764',ca:1,lock:false,pal:'1a1c2c 5d275d b13e53 ef7d57 ffcd75 a7f070 38b764 257179 29366f 3b5dc9 41a6f6 73eff7 f4f4f4 94b0c2 566c86 333c57'.split(' ').map(c=>'#'+c)};
-let tool='pencil',size=1,pm='size',mir=false,mgrid=true,pgrid=true,zoom=100,hist=[],redo=[],hov=null,dr=null,md=null,bd=null,pan=null,space=false,UM=[],RI=[],rview=false,sel=null,bs=null,clip=null,sd=null,OP=1,tf=null,WT=0,WC=true,SP=1,lp=null,pp=null,lastP=null,lastClick=0,FILLT=false,FA=false,shiftHeld=false,HSV={h:120,s:.7,v:.7},RP={f:{c:'#000000',a:1},t:{c:'#ffffff',a:1}},rpick=null,popK=null,VI=[],lastVi=0;
+let tool='pencil',size=1,pm='size',mir=false,mgrid=true,pgrid=true,zoom=100,hist=[],redo=[],hov=null,dr=null,md=null,bd=null,pan=null,space=false,UM=[],RI=[],rview=false,sel=null,bs=null,clip=null,sd=null,OP=1,tf=null,WT=0,WC=true,SP=1,lp=null,pp=null,lastP=null,lastClick=0,FILLT=false,FA=false,shiftHeld=false,HSV={h:120,s:.7,v:.7},RP={f:{c:'#000000',a:1},t:{c:'#ffffff',a:1}},rpick=null,popK=null,VI=[],lastVi=0,tipT=0,tipEl=null,touchDraw=true,penSeen=false,prevTool='pencil',bErase=false,lastPtr=[400,300],touches=new Map(),gst={on:false,maxN:0,t0:0,moved:0,pan1:null,lp:0,mid:null,d0:0};
 const NB=['picker','fill','select','wand','lasso','polysel','mkrule','move','bsel'];
 const mc=$('#mc'),mx=mc.getContext('2d');
 const mk=(n=S.T)=>{const c=document.createElement('canvas');c.width=c.height=n;return c};
@@ -132,8 +139,13 @@ function setSelH(n){if(!sel&&!n)return;const o=sel;sel=n;pushH({sb:o,sa:n});up(f
 /* ---------- map logic & rendering ---------- */
 function solid(x,y){return x<0||y<0||x>=S.W||y>=S.H?S.edge:S.map[y*S.W+x]===1}
 function pickI(x,y){for(let i=0;i<S.rules.length;i++){const r=S.rules[i];let ok=true;for(let k=0;k<8;k++){const v=r.n[k];if(v&&(v===1)!==solid(x+D[k][0],y+D[k][1])){ok=false;break}}if(ok)return i}return -1}
-function rtile(r,x,y,ri){const c=[],ids=[];[r.t,...(r.v||[])].forEach((t,j)=>{if(t!=null&&S.tiles[t]){c.push(t);ids.push(j)}});lastVi=0;if(!c.length)return null;if(c.length===1){lastVi=ids[0];return c[0]}
- const h=(Math.imul(x+1,73856093)^Math.imul(y+1,19349663)^Math.imul((r.s||0)+ri+1,83492791))>>>0,k=h%c.length;lastVi=ids[k];return c[k]}
+const wOf=(r,j)=>j===0?(r.w==null?1:r.w):((r.vw&&r.vw[j-1]!=null)?r.vw[j-1]:1);
+function pcs(r){const ws=[r.t,...(r.v||[])].map((t,j)=>t!=null&&S.tiles[t]?wOf(r,j):-1),tot=ws.reduce((a,b)=>a+Math.max(0,b),0);return ws.map(w=>w<0?'—':(tot>0?Math.round(w/tot*100):Math.round(100/ws.filter(v=>v>=0).length))+'%')}
+function rtile(r,x,y,ri){const c=[],ids=[],w=[];[r.t,...(r.v||[])].forEach((t,j)=>{if(t!=null&&S.tiles[t]){c.push(t);ids.push(j);w.push(wOf(r,j))}});lastVi=0;if(!c.length)return null;if(c.length===1){lastVi=ids[0];return c[0]}
+ let tot=w.reduce((a,b)=>a+b,0),ww=w;if(tot<=0){ww=w.map(()=>1);tot=c.length}
+ let h=(Math.imul(x+1,73856093)^Math.imul(y+1,19349663)^Math.imul((r.s||0)+ri+1,83492791))>>>0;h^=h>>>16;h=Math.imul(h,0x85ebca6b);h^=h>>>13;h=Math.imul(h,0xc2b2ae35);h^=h>>>16;h>>>=0;
+ let u=(h/4294967296)*tot,k=0;for(;k<c.length-1;k++){if(u<ww[k])break;u-=ww[k]}lastVi=ids[k];return c[k]}
+function varSlots(r){const p=pcs(r);return r.v.map((t,j)=>`<span class="vs2">${t==null?`<button class="nt" data-a="n" data-vi="${j}" title="Empty variation slot – click to create a tile (right-click or long-press for more)">+</button>`:`<canvas class="rt" data-t="${t}" data-vi="${j}" title="Variation ${j+1} · click to select · right-click or long-press for more"></canvas>`}<input class="wv" data-vi="${j}" type="number" min="0" max="1" step="0.05" value="${wOf(r,j+1)}" title="Probability weight: 0 = never, 1 = full weight (relative to this rule’s other tiles)"><small class="pc" data-vi="${j}">${p[j+1]}</small></span>`).join('')}
 function calcTm(){const{W,H}=S;S.tm=Array(W*H).fill(-1);UM=[];RI=[];VI=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(S.map[y*W+x]===1){const ri=pickI(x,y),t=ri<0?-1:rtile(S.rules[ri],x,y,ri);RI[y*W+x]=ri;VI[y*W+x]=lastVi;S.tm[y*W+x]=ri>=0&&t==null?-2:t<0||!S.tiles[t]?0:t;if(ri<0)UM[y*W+x]=1}}
 const tileAt=(x,y)=>x<0||y<0||x>=S.W||y>=S.H?-1:S.tm[y*S.W+x];
 function tfGeo(){const a=tf.rot*Math.PI/180,co=Math.cos(a),si=Math.sin(a),hw=tf.src.width*tf.sx/2,hh=tf.src.height*tf.sy/2,P=(x,y)=>[tf.cx+x*co-y*si,tf.cy+x*si+y*co];
@@ -173,7 +185,7 @@ const key=()=>S.col+(S.ca<1?Math.round(S.ca*255).toString(16).padStart(2,'0'):''
 function buildPal(){const k=key();$('#pal').innerHTML=S.pal.map(c=>{const[r,g,b]=rgb(c),a=c.length>7?parseInt(c.slice(7,9),16)/255:1;return`<i data-c="${c}" title="${c}" style="background:linear-gradient(rgba(${r},${g},${b},${a}),rgba(${r},${g},${b},${a})),repeating-conic-gradient(#8887 0 25%,#0000 0 50%) 0 0/8px 8px" class="${c===k?'on':''}"></i>`}).join('');$('#hx').value=S.col;$('#ca').value=Math.round(S.ca*100);$('#cav').textContent=Math.round(S.ca*100)+'%';syncPicker()}
 function buildTiles(){$('#tiles').innerHTML=S.tiles.map((_,i)=>`<div data-i="${i}" class="${i===S.cur?'on':''}"><canvas data-t="${i}"></canvas><small>${i}</small></div>`).join('');buildLayers();prev()}
 function buildLayers(){const t=S.tiles[S.cur];$('#lt').textContent='tile #'+S.cur;$('#lays').innerHTML=t.L.map((l,i)=>`<div class="ly${i===t.al?' on':''}" data-l="${i}"><button data-a="v" title="Show / hide" class="${l.v?'':'dim'}">${l.v?'◉':'○'}</button><span title="Double-click to rename">${l.n.replace(/</g,'&lt;')}</span></div>`).reverse().join('')}
-function buildRules(){$('#rules').innerHTML=S.rules.map((r,i)=>`<div class="rl" data-r="${i}"><b style="width:20px;color:hsl(${i*47%360},70%,50%)" title="Rule ${i}">${i}</b><div class="g3">${[0,1,2,3,'c',4,5,6,7].map(k=>k==='c'?'<i class="c"></i>':`<i data-k="${k}" data-v="${r.n[k]}" title="${NM[k]}"></i>`).join('')}</div><span class="m">→</span>${r.t==null?'<button class="nt" data-a="n" title="No tile yet – click to create one (right-click for more)">+</button>':`<canvas class="rt" data-t="${r.t}" title="Click to select this tile · right-click for more"></canvas>`}<b class="m">${r.t==null?'none':'#'+r.t}${r.v&&r.v.length?' +'+r.v.length:''}</b><span class="sp"></span><button data-a="s" title="Assign the selected tile to this rule">⇐</button><button data-a="u">↑</button><button data-a="d">↓</button><button data-a="x">✕</button>${r.v&&r.v.length?`<div class="rvs"><span class="m">random variations:</span>${r.v.map((t,j)=>t==null?`<button class="nt" data-a="n" data-vi="${j}" title="Empty variation slot – click to create a tile (right-click for more)">+</button>`:`<canvas class="rt" data-t="${t}" data-vi="${j}" title="Variation ${j+1} · click to select · right-click for more"></canvas>`).join('')}</div>`:''}</div>`).join('')||'<p class="m">No rules yet.</p>';prev()}
+function buildRules(){$('#rules').innerHTML=S.rules.map((r,i)=>`<div class="rl" data-r="${i}"><b style="width:20px;color:hsl(${i*47%360},70%,50%)" title="Rule ${i}">${i}</b><div class="g3">${[0,1,2,3,'c',4,5,6,7].map(k=>k==='c'?'<i class="c"></i>':`<i data-k="${k}" data-v="${r.n[k]}" title="${NM[k]}"></i>`).join('')}</div><span class="m">→</span>${r.t==null?'<button class="nt" data-a="n" title="No tile yet – click to create one (right-click for more)">+</button>':`<canvas class="rt" data-t="${r.t}" title="Click to select this tile · right-click for more"></canvas>`}<b class="m">${r.t==null?'none':'#'+r.t}${r.v&&r.v.length?' +'+r.v.length:''}</b>${r.v&&r.v.length?`<input class="wv" data-vi="p" type="number" min="0" max="1" step="0.05" value="${wOf(r,0)}" title="Probability weight of this tile: 0 = never, 1 = full weight (relative to this rule’s other tiles)"><small class="pc" data-vi="p">${pcs(r)[0]}</small>`:''}<span class="sp"></span><button data-a="m" title="More options: variations, unassign…">⋯</button><button data-a="s" title="Assign the selected tile to this rule">⇐</button><button data-a="u">↑</button><button data-a="d">↓</button><button data-a="x">✕</button>${r.v&&r.v.length?`<div class="rvs"><span class="m">random variations:</span>${varSlots(r)}</div>`:''}</div>`).join('')||'<p class="m">No rules yet.</p>';prev()}
 function ui(){sel=null;tf=null;bs=null;lp=null;pp=null;lastP=null;$('#tn').value=S.T;$('#mw').value=S.W;$('#mh').value=S.H;$('#eg').checked=S.edge;$('#lk').classList.toggle('on',S.lock);buildPal();buildTiles();buildRules();up(false)}
 const TI={blocks:['▣','Place blocks (Q): left = block, right = empty'],bsel:['⬒','Select / move blocks (S): drag a marquee, or drag a block · Shift = marquee from a block'],pencil:['✎','Pencil (B) · click A, then Shift+click B for a line · keep holding and drag to bend it'],eraser:['⌫','Eraser (E)'],fill:['▨','Fill (G) · option “Fill across tiles” in the bar above'],line:['╱','Line (L)'],
  rect:['▭','Rectangle (R) · Shift = square'],ellipse:['◯','Ellipse (O) · Shift = circle'],poly:['⬠','Polygon (P): click points, Enter / double-click to finish'],
@@ -184,7 +196,7 @@ const TOOLBAR=['blocks','bsel','pencil','eraser','fill','line','G:shape','G:sel'
 function buildTools(){$('#tools').innerHTML=TOOLBAR.map(x=>{if(x[0]==='G'&&x[1]===':'){const g=x.slice(2),k=GR[g].cur;return`<button data-tool="${k}" data-g="${g}" class="grp${GR[g].m.includes(tool)?' on':''}" title="${TI[k][1]} · right-click for more tools">${TI[k][0]}</button>`}return`<button data-tool="${x}" class="${x===tool?'on':''}" title="${TI[x][1]}">${TI[x][0]}</button>`}).join('')}
 const HINT={blocks:'Placing blocks · left: block · right: empty',paint:'Painting on placed tiles · empty space is ignored · Alt-click: pick colour'};
 function finishPending(k){if(dr&&dr.keep&&k!=='poly')finishPolyShape();if(pp&&k!=='polysel')finishPolySel()}
-function setTool(k){if(k!=='move')tfCommit();finishPending(k);tool=k;for(const g in GR)if(GR[g].m.includes(k))GR[g].cur=k;buildTools();$('#hint').textContent=k==='blocks'||k==='bsel'?HINT.blocks:HINT.paint;if(k==='move'&&sel&&!tf)tfBegin();up(false)}
+function setTool(k){if(k!=='move')tfCommit();finishPending(k);tool=k;for(const g in GR)if(GR[g].m.includes(k))GR[g].cur=k;buildTools();$('#hint').textContent=k==='blocks'||k==='bsel'?(bErase&&k==='blocks'?'Erasing blocks · use the eraser toggle to go back to placing':HINT.blocks):HINT.paint;if(k==='move'&&sel&&!tf)tfBegin();up(false)}
 $('#tools').onclick=e=>{const b=e.target.closest('[data-tool]');if(b)setTool(b.dataset.tool)};
 /* ---------- floating context bar (only when relevant) ---------- */
 const memb=g=>GR[g].m.map(k=>`<button data-c="t:${k}" class="${tool===k?'on':''}" title="${TI[k][1]}">${TI[k][0]}</button>`).join('');
@@ -253,13 +265,15 @@ function delBlocks(){if(!bs)return;const before=S.map.slice();for(let y=0;y<bs.h
 /* ---------- pointer handling ---------- */
 mc.oncontextmenu=e=>e.preventDefault();
 mc.onpointerdown=e=>{e.preventDefault();const ae=document.activeElement;if(ae&&ae!==document.body)ae.blur();mc.setPointerCapture(e.pointerId);
+ if(e.pointerType==='pen')notePen();
+ if(e.pointerType==='touch'&&touchDown(e))return;
  if(e.button===1||space){const v=mc.parentElement;pan={x:e.clientX,y:e.clientY,l:v.scrollLeft,t:v.scrollTop};return}
- calcTm();const[gx,gy]=pxp(e),[fx,fy]=pxf(e),T=S.T,a=Math.floor(gx/T),b=Math.floor(gy/T),er=tool==='eraser'||e.button===2;
+ calcTm();const[gx,gy]=pxp(e),[fx,fy]=pxf(e),T=S.T,a=Math.floor(gx/T),b=Math.floor(gy/T),er=tool==='eraser'||e.button===2||!!(e.buttons&32);
  if(rpick){rpPick(gx,gy);return}
  if(tool==='move'){if(!tf&&sel)tfBegin();if(tf)tfDown(e);return}
  if(tf)tfCommit();
  if(e.altKey||tool==='picker'){selectAt(gx,gy,true);return}
- if(tool==='blocks'){md={v:e.button===2?0:1,l:[a,b],before:S.map.slice()};setCell([a,b],md.v);up();return}
+ if(tool==='blocks'){md={v:e.button===2||bErase?0:1,l:[a,b],before:S.map.slice()};setCell([a,b],md.v);up();return}
  if(tool==='bsel'){bselDown(a,b,e.shiftKey);return}
  if(tool==='select'){const x=Math.max(0,Math.min(GWf()-1,gx)),y=Math.max(0,Math.min(GHf()-1,gy));selectAt(x,y,false);sd={x0:x,y0:y,sb:sel,mv:0};sel={x,y,w:1,h:1};up(false);return}
  if(tool==='wand'){wand(gx,gy,e);return}
@@ -272,7 +286,7 @@ mc.onpointerdown=e=>{e.preventDefault();const ae=document.activeElement;if(ae&&a
  dr={sn:{},done:new Set(),x0:gx,y0:gy,lx:gx,ly:gy,er,pen:e.pointerType==='pen',shift:e.shiftKey};
  if(tool==='fill'){if(FA)fillG(gx,gy,er);else{const i=tileAt(a,b);if(i>=0){touch(i);fill(gx-a*T,gy-b*T,er,a,b)}}end();return}
  if(tool==='pencil'||tool==='eraser')dab(gx,gy,gx,gy,e.pressure);else shape(gx,gy);up()};
-mc.onpointermove=e=>{if(pan){const v=mc.parentElement;v.scrollLeft=pan.l-(e.clientX-pan.x);v.scrollTop=pan.t-(e.clientY-pan.y);return}
+mc.onpointermove=e=>{lastPtr=[e.clientX,e.clientY];if(e.pointerType==='pen')notePen();if(e.pointerType==='touch'&&touchMove(e))return;if(pan){const v=mc.parentElement;v.scrollLeft=pan.l-(e.clientX-pan.x);v.scrollTop=pan.t-(e.clientY-pan.y);return}
  hov=pxp(e);shiftHeld=e.shiftKey;const T=S.T;
  if(sd){const x=Math.max(0,Math.min(GWf()-1,hov[0])),y=Math.max(0,Math.min(GHf()-1,hov[1]));sel={x:Math.min(sd.x0,x),y:Math.min(sd.y0,y),w:Math.abs(x-sd.x0)+1,h:Math.abs(y-sd.y0)+1};if(sel.w>1||sel.h>1)sd.mv=1}
  if(lp){const f=pxf(e),l=lp.pts[lp.pts.length-1];if(Math.hypot(f[0]-l[0],f[1]-l[1])>=.5)lp.pts.push(f)}
@@ -284,7 +298,7 @@ mc.onpointermove=e=>{if(pan){const v=mc.parentElement;v.scrollLeft=pan.l-(e.clie
   else if(dr.curve){dr.curve.P=[hov[0],hov[1]];drawCurve()}
   else{for(const ev of(e.getCoalescedEvents?.()||[e])){const[x,y]=pxp(ev);if(tool==='pencil'||tool==='eraser')dab(dr.lx,dr.ly,x,y,ev.pressure);dr.lx=x;dr.ly=y}if(tool==='line'||tool==='rect'||tool==='ellipse')shape(dr.lx,dr.ly)}}
  up(!!((dr&&!dr.keep)||md||bd))};
-mc.onpointerup=mc.onpointercancel=end;mc.onpointerleave=()=>{hov=null;up(false)};
+mc.onpointerup=mc.onpointercancel=e=>{if(e.pointerType==='touch'&&touchUp(e))return;end()};mc.onpointerleave=()=>{hov=null;up(false)};
 function setCell(c,v){const[x,y]=c;if(x>=0&&y>=0&&x<S.W&&y<S.H)S.map[y*S.W+x]=v}
 function resizeMap(w,h){tfCommit();const before=S.map.slice(),W0=S.W,H0=S.H,m=Array(w*h).fill(0);for(let y=0;y<Math.min(h,S.H);y++)for(let x=0;x<Math.min(w,S.W);x++)m[y*w+x]=S.map[y*S.W+x];S.map=m;S.W=w;S.H=h;pushH({map:{d:before,W:W0,H:H0}});sel=null;bs=null;up()}
 $('#mw').onchange=$('#mh').onchange=()=>resizeMap(Math.max(3,Math.min(64,+$('#mw').value||24)),Math.max(3,Math.min(64,+$('#mh').value||16)));
@@ -317,19 +331,21 @@ $('#tx').onclick=()=>{if(S.tiles.length<2)return toast('Keep at least one tile')
 $('#ra').onclick=()=>{S.rules.push({t:null,n:Array(8).fill(0)});buildRules();up()};
 const newTileFor=(r,vi)=>{S.tiles.push(mkTile());const n=S.tiles.length-1;if(vi!=null)r.v[vi]=n;else r.t=n;S.cur=n;buildTiles();buildRules();up()};
 const dupTile=t=>{S.tiles.push(t!=null&&S.tiles[t]?cloneTile(S.tiles[t]):mkTile());return S.tiles.length-1};
-const addVar=(r,t)=>{(r.v=r.v||[]).push(t);if(!r.s)r.s=(Math.random()*1e9)|0;S.cur=t;buildTiles();buildRules();up();toast('Variation added: this rule now picks randomly between its tiles')};
+const addVar=(r,t)=>{(r.v=r.v||[]).push(t);r.vw=r.vw||[];while(r.vw.length<r.v.length)r.vw.push(1);if(!r.s)r.s=(Math.random()*1e9)|0;S.cur=t;buildTiles();buildRules();up();toast('Variation added: this rule now picks randomly between its tiles')};
 $('#rules').onclick=e=>{const row=e.target.closest('[data-r]');if(!row)return;const i=+row.dataset.r,r=S.rules[i],k=e.target.dataset.k,a=e.target.dataset.a;
  const vi=e.target.dataset.vi;if(k!=null)r.n[k]=(r.n[k]+1)%3;else if(e.target.classList.contains('rt')){const tt=vi!=null?r.v[vi]:r.t;if(tt!=null){S.cur=tt;buildTiles();up(false)}return}
- else if(a==='n'){newTileFor(r,vi!=null?+vi:null);return}else if(a==='s')r.t=S.cur;else if(a==='x')S.rules.splice(i,1);else if(a==='u'&&i>0)[S.rules[i-1],S.rules[i]]=[r,S.rules[i-1]];else if(a==='d'&&i<S.rules.length-1)[S.rules[i+1],S.rules[i]]=[r,S.rules[i+1]];else return;
+ else if(a==='n'){newTileFor(r,vi!=null?+vi:null);return}else if(a==='m'){const b0=e.target.getBoundingClientRect();$('#rules').oncontextmenu({target:row,clientX:b0.left,clientY:b0.bottom,preventDefault(){}});return}else if(a==='s')r.t=S.cur;else if(a==='x')S.rules.splice(i,1);else if(a==='u'&&i>0)[S.rules[i-1],S.rules[i]]=[r,S.rules[i-1]];else if(a==='d'&&i<S.rules.length-1)[S.rules[i+1],S.rules[i]]=[r,S.rules[i+1]];else return;
  buildRules();up()};
 const cm=$('#cm'),hideCM=()=>{cm.style.display='none'};
 function showCM(x,y,items){cm._it=items;cm.innerHTML=items.map((it,i)=>it?`<button data-i="${i}">${it[0]}</button>`:'<hr>').join('');cm.style.display='block';cm.style.left=Math.max(4,Math.min(x,innerWidth-200))+'px';cm.style.top=Math.max(4,Math.min(y,innerHeight-items.length*32-10))+'px'}
 cm.onclick=e=>{const b=e.target.closest('button');if(b){const it=cm._it[b.dataset.i];hideCM();it[1]()}};
 addEventListener('pointerdown',e=>{if(!cm.contains(e.target))hideCM()},true);addEventListener('keydown',e=>{if(e.key==='Escape')hideCM()},true);
 $('#rules').oncontextmenu=e=>{const row=e.target.closest('[data-r]');if(!row)return;e.preventDefault();const i=+row.dataset.r,r=S.rules[i],ref=()=>{buildRules();up()},vi=e.target.dataset.vi;
- if(vi!=null){const j=+vi,t=r.v[j];showCM(e.clientX,e.clientY,[...(t!=null?[['Go to tile #'+t,()=>{S.cur=t;buildTiles();up(false)}]]:[]),['Assign selected tile (#'+S.cur+')',()=>{r.v[j]=S.cur;ref()}],['Create a new tile here',()=>newTileFor(r,j)],null,['Remove this variation',()=>{r.v.splice(j,1);ref()}]]);return}
+ if(vi!=null){const j=+vi,t=r.v[j];showCM(e.clientX,e.clientY,[...(t!=null?[['Go to tile #'+t,()=>{S.cur=t;buildTiles();up(false)}]]:[]),['Assign selected tile (#'+S.cur+')',()=>{r.v[j]=S.cur;ref()}],['Create a new tile here',()=>newTileFor(r,j)],null,['Remove this variation',()=>{r.v.splice(j,1);if(r.vw)r.vw.splice(j,1);ref()}]]);return}
  showCM(e.clientX,e.clientY,[...(r.t!=null?[['Go to tile #'+r.t,()=>{S.cur=r.t;buildTiles();up(false)}],['Unassign tile',()=>{r.t=null;ref()}]]:[]),['Assign selected tile (#'+S.cur+')',()=>{r.t=S.cur;ref()}],['Create a new tile for this rule',()=>newTileFor(r)],null,
-  ['Add random tile variation (new copy of this tile)',()=>addVar(r,dupTile(r.t))],['Add random variation using selected tile (#'+S.cur+')',()=>addVar(r,S.cur)],...(r.v&&r.v.length?[['Remove all variations',()=>{r.v=[];ref()}]]:[]),null,['Delete rule',()=>{S.rules.splice(i,1);ref()}]])};
+  ['Add random tile variation (new copy of this tile)',()=>addVar(r,dupTile(r.t))],['Add random variation using selected tile (#'+S.cur+')',()=>addVar(r,S.cur)],...(r.v&&r.v.length?[['Remove all variations',()=>{r.v=[];r.vw=[];ref()}]]:[]),null,['Delete rule',()=>{S.rules.splice(i,1);ref()}]])};
+$('#rules').oninput=e=>{const t=e.target;if(!t.classList.contains('wv'))return;const row=t.closest('[data-r]'),r=S.rules[+row.dataset.r],v=parseFloat(t.value);if(isNaN(v))return;const w=Math.max(0,Math.min(1,v)),vi=t.dataset.vi;
+ if(vi==='p')r.w=w;else{r.vw=r.vw||[];r.vw[+vi]=w}const p=pcs(r);row.querySelectorAll('.pc').forEach(el=>{el.textContent=p[el.dataset.vi==='p'?0:+el.dataset.vi+1]});up()};
 $('#trz').onclick=()=>{const n=Math.max(4,Math.min(256,+$('#tn').value|0)),sc=$('#tsc').checked;if(n===S.T){$('#tn').value=n;return}S.tiles=S.tiles.map(o=>cloneTile(o,n,sc));S.T=n;hist=[];redo=[];ui();up();toast(sc?'Artwork scaled to '+n+' px':'Resized to '+n+' px (cropped / padded)')};
 $('#tn').onkeydown=e=>{if(e.key==='Enter'){$('#trz').click();e.target.blur()}};
 /* ---------- layers ---------- */
@@ -372,7 +388,7 @@ $('#xs').onclick=()=>sheet().c.toBlob(b=>dl('tileset.png',b));
 $('#xr').onclick=()=>{const{cols}=sheet();dl('tile-rules.json',new Blob([JSON.stringify({tileSize:S.T,columns:cols,tileCount:S.tiles.length,neighborOrder:NM,edgeCountsAsSolid:S.edge,fallbackTile:0,
  note:'Rules are checked in order, first match wins. Neighbour bit k is 1 when that neighbour is solid. A rule matches when (neighbours & care) === mask.',
  tiles:S.tiles.map((_,i)=>({id:i,x:i%cols*S.T,y:Math.floor(i/cols)*S.T})),
- rules:S.rules.map(r=>({tile:r.t,variants:(r.v||[]).filter(v=>v!=null),neighbors:r.n.map(v=>ST[v]),mask:r.n.reduce((a,v,k)=>a|(v===1?1<<k:0),0),care:r.n.reduce((a,v,k)=>a|(v?1<<k:0),0)})),
+ rules:S.rules.map(r=>({tile:r.t,weight:wOf(r,0),variants:(r.v||[]).map((t,j)=>({tile:t,weight:wOf(r,j+1)})).filter(v=>v.tile!=null),neighbors:r.n.map(v=>ST[v]),mask:r.n.reduce((a,v,k)=>a|(v===1?1<<k:0),0),care:r.n.reduce((a,v,k)=>a|(v?1<<k:0),0)})),
  map:{width:S.W,height:S.H,solid:S.map}},null,1)],{type:'application/json'}))};
 $('#xp').onclick=()=>dl('tilemap-project.json',new Blob([JSON.stringify(ser())],{type:'application/json'}));
 $('#op').onclick=()=>$('#fi').click();
@@ -438,7 +454,7 @@ const bsz=d=>{size=Math.max(1,Math.min(32,size+d));$('#sz').value=size;$('#szv')
 const ACTS=[...[['blocks','Place blocks','q'],['bsel','Select / move blocks','s'],['pencil','Pencil','b'],['eraser','Eraser','e'],['fill','Fill','g'],['line','Line','l'],['rect','Rectangle','r'],['ellipse','Ellipse','o'],['poly','Polygon shape','p'],['select','Box select','m'],['wand','Magic wand','w'],['lasso','Lasso select','a'],['polysel','Polygon select','d'],['move','Move / free transform','v'],['mkrule','Make rule from placed block','u'],['picker','Eyedropper','i']].map(([id,l,k])=>[id,l,k,()=>setTool(id)]),
  ['mirror','Toggle tile mirror','x',()=>$('#mi').click()],['rview','Toggle rule IDs','n',()=>$('#rv').click()],['lock','Toggle alpha lock','k',()=>$('#lk').click()],['sizeup','Brush bigger',']',()=>bsz(1)],['sizedown','Brush smaller','[',()=>bsz(-1)],
  ['undo','Undo','ctrl+z',()=>undo(0)],['redo','Redo','ctrl+y',()=>undo(1)],['selall','Select current tile','ctrl+a',selAll],['desel','Deselect','ctrl+d',()=>{tfCommit();setSelH(null);bs=null;up(false)}],['invert','Invert selection','ctrl+i',invSel],
- ['copy','Copy','ctrl+c',()=>copySel(0)],['cut','Cut','ctrl+x',()=>copySel(1)],['paste','Paste','ctrl+v',paste],['del','Delete selection','delete',delSel],['replace','Replace colour…','shift+r',()=>openReplace()],['keys','Shortcuts menu','shift+?',openKeys]];
+ ['copy','Copy','ctrl+c',()=>copySel(0)],['cut','Cut','ctrl+x',()=>copySel(1)],['paste','Paste','ctrl+v',paste],['del','Delete selection','delete',delSel],['replace','Replace colour…','shift+r',()=>openReplace()],['quick','Quick tool menu at the cursor','`',()=>showQuick(lastPtr[0],lastPtr[1])],['erasetoggle','Toggle eraser ↔ current tool','shift+e',()=>toggleEraser()],['keys','Shortcuts menu','shift+?',openKeys]];
 const DEFKB=Object.fromEntries(ACTS.map(a=>[a[0],a[2]]));let KB={...DEFKB},rebind=null;
 try{Object.assign(KB,JSON.parse(localStorage.getItem('tilesmith-keys')||'{}'))}catch(e){}
 const saveKeys=()=>{try{localStorage.setItem('tilesmith-keys',JSON.stringify(KB))}catch(e){}};
@@ -504,7 +520,7 @@ function rpPick(gx,gy){const k=rpick,T=S.T,a=Math.floor(gx/T),b=Math.floor(gy/T)
 $('#rd').onclick=e=>{const u=e.target.dataset.u;if(u){RP[u]={c:S.col,a:S.ca};showRP()}};
 for(const k of['f','t']){$('#r'+k).oninput=e=>{const v=e.target.value.trim();if(/^#[0-9a-f]{6}$/i.test(v)){RP[k].c=v.toLowerCase();showRP();$('#r'+k).value=v}};$('#r'+k+'a').oninput=e=>{RP[k].a=Math.max(0,Math.min(100,+e.target.value||0))/100;showRP();$('#r'+k+'a').value=e.target.value}}
 $('#rtol').oninput=e=>{$('#rtv').textContent=e.target.value+'%'};
-$('#rok').onclick=()=>{const T=S.T,sc=$('#rsc').value,tol=+$('#rtol').value*2.55,keep=$('#rka').checked,f=rgb(RP.f.c),fa=Math.round(RP.f.a*255),t=rgb(RP.t.c),ta=Math.round(RP.t.a*255);
+$('#rok').onclick=()=>{const T=S.T,sc=$('#rsc').value,tol=+$('#rtol').value*2.55,keep=$('#rka').checked,f=rgb(RP.f.c),fa=Math.round(RP.f.a*255),to=rgb(RP.t.c),ta=Math.round(RP.t.a*255);
  tfCommit();calcTm();const items=[];
  if(sc==='sel'){if(!sel){toast('No selection: pick another scope');return}const r=cellRange();for(let ay=r.y0;ay<=r.y1;ay++)for(let ax=r.x0;ax<=r.x1;ax++){const i=tileAt(ax,ay);if(i>=0)items.push([i,ax,ay])}}
  else if(sc==='tile')items.push([S.cur,0,0]);else S.tiles.forEach((_,i)=>items.push([i,0,0]));
@@ -512,7 +528,7 @@ $('#rok').onclick=()=>{const T=S.T,sc=$('#rsc').value,tol=+$('#rtol').value*2.55
  for(const[i,ax,ay]of items){const t=S.tiles[i],x=cx(t.L[t.al].c),im=x.getImageData(0,0,T,T),d=im.data;let ch=0;
   for(let p=0;p<T*T;p++){const q=p*4;if(sc==='sel'&&!inSel(ax*T+p%T,ay*T+(p/T|0)))continue;
    const hit=fa===0?d[q+3]<=tol:(Math.abs(d[q]-f[0])<=tol&&Math.abs(d[q+1]-f[1])<=tol&&Math.abs(d[q+2]-f[2])<=tol&&Math.abs(d[q+3]-fa)<=tol);
-   if(hit){d[q]=t[0];d[q+1]=t[1];d[q+2]=t[2];if(!keep||fa===0)d[q+3]=ta;ch++}}
+   if(hit){d[q]=to[0];d[q+1]=to[1];d[q+2]=to[2];if(!keep||fa===0)d[q+3]=ta;ch++}}
   if(ch){if(!sn[i])sn[i]={l:t.al,d:x.getImageData(0,0,T,T)};x.putImageData(im,0,0);t.dirty=1;n++;px+=ch}}
  if(n){pushH({sn});up();toast('Replaced '+px+' pixel'+(px===1?'':'s'))}else toast('No matching pixels found')};
 /* ---------- polygon tools ---------- */
@@ -537,6 +553,49 @@ function finishPolyShape(){if(!dr||!dr.keep)return;const d=dr;restore();if(d.pts
 $('#tools').oncontextmenu=e=>{const b=e.target.closest('[data-g]');if(!b)return;e.preventDefault();const g=b.dataset.g;showCM(e.clientX,e.clientY,GR[g].m.map(k=>[TI[k][0]+'  '+TI[k][1].split(' (')[0].split(':')[0],()=>setTool(k)]))};
 addEventListener('keydown',e=>{if(e.key==='Shift'&&!shiftHeld){shiftHeld=true;up(false)}});addEventListener('keyup',e=>{if(e.key==='Shift'){shiftHeld=false;up(false)}});
 setInterval(()=>{if(sel||tf||lp||pp||bs||(shiftHeld&&lastP))up(false)},90);
+/* ---------- touch, pencil, tooltips, quick menu ---------- */
+const tMid=()=>{const a=[...touches.values()],n=a.length,x=a.reduce((q,p)=>q+p.x,0)/n,y=a.reduce((q,p)=>q+p.y,0)/n;return{x,y,d:n>1?Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y):0}};
+function abortStroke(){if(dr&&!dr.keep){restore();dr=null}if(md){S.map=md.before;md=null}if(bd){S.map=bd.before;bd=null}if(sd){sel=sd.sb;sd=null}lp=null;if(tf)tf.drag=null;up(false)}
+function touchDown(e){touches.set(e.pointerId,{x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY});
+ if(touches.size===1)gst={on:false,maxN:1,t0:performance.now(),moved:0,pan1:null,lp:0,mid:null,d0:0};else gst.maxN=Math.max(gst.maxN,touches.size);
+ if(touches.size>=2){if(!gst.on)abortStroke();gst.on=true;clearTimeout(gst.lp);gst.pan1=null;const m=tMid();gst.mid=m;gst.d0=m.d||1;return true}
+ if(!touchDraw){const v=mc.parentElement,cxp=e.clientX,cyp=e.clientY;gst.pan1={x:cxp,y:cyp,l:v.scrollLeft,t:v.scrollTop};gst.lp=setTimeout(()=>{if(!gst.moved&&touches.size===1){gst.pan1=null;gst.on=true;showQuick(cxp,cyp)}},550);return true}
+ return false}
+function touchMove(e){const t=touches.get(e.pointerId);if(!t)return false;t.x=e.clientX;t.y=e.clientY;if(Math.hypot(t.x-t.sx,t.y-t.sy)>10){gst.moved=1;clearTimeout(gst.lp)}
+ if(gst.on){if(touches.size>=2){const m=tMid(),v=mc.parentElement;if(gst.mid){v.scrollLeft-=m.x-gst.mid.x;v.scrollTop-=m.y-gst.mid.y;if(Math.abs(m.d-gst.d0)/gst.d0>.08)gst.moved=1;if(gst.mid.d>0&&m.d>0&&m.d!==gst.mid.d)setZoom(zoom*m.d/gst.mid.d,{clientX:m.x,clientY:m.y})}gst.mid=m}return true}
+ if(gst.pan1){const v=mc.parentElement;v.scrollLeft=gst.pan1.l-(e.clientX-gst.pan1.x);v.scrollTop=gst.pan1.t-(e.clientY-gst.pan1.y);return true}
+ return false}
+function touchUp(e){if(!touches.has(e.pointerId))return false;touches.delete(e.pointerId);
+ if(gst.on||gst.pan1){if(touches.size===0){const tap=!gst.moved&&performance.now()-gst.t0<350&&e.type==='pointerup';if(tap&&gst.on){if(gst.maxN===2)undo(0);else if(gst.maxN===3)undo(1)}else if(tap&&gst.pan1&&gst.maxN===1)toggleEraser();clearTimeout(gst.lp);gst.on=false;gst.pan1=null;gst.maxN=0}return true}
+ clearTimeout(gst.lp);return false}
+const updTD=()=>$('#td').classList.toggle('on',touchDraw);
+function notePen(){if(penSeen)return;penSeen=true;if(touchDraw){touchDraw=false;updTD();toast('Apple Pencil detected: fingers now pan and zoom (tap = eraser, hold = quick tools). Toggle with ☝ Finger draw')}}
+$('#td').onclick=()=>{touchDraw=!touchDraw;updTD();toast(touchDraw?'Fingers draw':'Fingers pan / zoom · tap = eraser toggle · hold = quick tools')};updTD();
+function toggleEraser(){if(tool==='blocks'){bErase=!bErase;setTool('blocks');toast('Blocks: '+(bErase?'erasing':'placing'));return}if(tool==='eraser')setTool(prevTool||'pencil');else{prevTool=tool;setTool('eraser')}}
+function showQuick(x,y){const el=$('#qm'),items=['blocks','bsel','pencil','eraser','fill','line','rect','ellipse','poly','select','wand','lasso','polysel','move','mkrule','picker'],R=Math.max(72,items.length*7.4);
+ el.innerHTML=items.map((k,i)=>{const a=-Math.PI/2+i/items.length*2*Math.PI;return`<button data-q="${k}" class="${tool===k?'on':''}" style="left:${(Math.cos(a)*R).toFixed(1)}px;top:${(Math.sin(a)*R).toFixed(1)}px" title="${TI[k][1]}">${TI[k][0]}</button>`}).join('')+`<b class="qc">${TI[tool][0]}</b>`;
+ el.style.left=Math.max(R+26,Math.min(innerWidth-R-26,x))+'px';el.style.top=Math.max(R+26,Math.min(innerHeight-R-26,y))+'px';el.style.display='block'}
+const hideQuick=()=>{$('#qm').style.display='none'};
+$('#qm').onclick=e=>{const b=e.target.closest('[data-q]');if(b){setTool(b.dataset.q);hideQuick()}};
+addEventListener('pointerdown',e=>{if(!e.target.closest('#qm'))hideQuick()},true);addEventListener('keydown',e=>{if(e.key==='Escape')hideQuick()},true);
+$('#qb').onclick=()=>showQuick(innerWidth/2,innerHeight/2);
+function longPress(el,ms=500){let t=0,sx=0,sy=0,tgt=null,fired=false;
+ el.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'||!el.oncontextmenu)return;fired=false;sx=e.clientX;sy=e.clientY;tgt=e.target;clearTimeout(t);t=setTimeout(()=>{fired=true;hideTip();el.oncontextmenu({target:tgt,clientX:sx,clientY:sy,preventDefault(){}})},ms)},true);
+ const cancel=()=>clearTimeout(t);el.addEventListener('pointermove',e=>{if(Math.hypot(e.clientX-sx,e.clientY-sy)>10)cancel()},true);el.addEventListener('pointerup',cancel,true);el.addEventListener('pointercancel',cancel,true);
+ el.addEventListener('click',e=>{if(fired){e.stopPropagation();e.preventDefault();fired=false}},true)}
+['#tools','#rules','#pal'].forEach(q=>longPress($(q)));
+/* custom hover tooltips (work with mouse, trackpad and Apple Pencil hover) */
+const tip=document.createElement('div');tip.id='tip';document.body.appendChild(tip);
+function hideTip(){clearTimeout(tipT);tip.style.display='none';tipEl=null}
+function showTip(el){let t=el.getAttribute('title');if(t){el.setAttribute('data-tip',t);el.removeAttribute('title')}t=el.getAttribute('data-tip');if(!t)return;tip.textContent=t;tip.style.display='block';
+ const r=el.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let y=r.bottom+8;if(y+h>innerHeight-6)y=r.top-h-8;tip.style.left=Math.max(6,Math.min(innerWidth-w-6,r.left+r.width/2-w/2))+'px';tip.style.top=Math.max(6,y)+'px';tipEl=el}
+document.addEventListener('pointerover',e=>{if(e.pointerType==='touch')return;const el=e.target.closest&&e.target.closest('[title],[data-tip]');if(!el||el===tipEl)return;clearTimeout(tipT);tipT=setTimeout(()=>showTip(el),300)},true);
+document.addEventListener('pointerout',e=>{if(e.pointerType==='touch')return;if(e.target.closest&&e.target.closest('[title],[data-tip]'))hideTip()},true);
+document.addEventListener('pointerdown',hideTip,true);
+/* stop the pencil / fingers selecting page text, and stop Safari page zoom */
+document.addEventListener('selectstart',e=>{const t=e.target.nodeType===3?e.target.parentElement:e.target;if(!(t&&t.closest&&t.closest('input,textarea')))e.preventDefault()});
+document.addEventListener('dragstart',e=>e.preventDefault());
+['gesturestart','gesturechange','gestureend'].forEach(n=>document.addEventListener(n,e=>e.preventDefault()));
 /* ---------- init ---------- */
 (async()=>{setTool('pencil');let o=null;try{o=JSON.parse(localStorage.getItem('tilesmith'))}catch(e){}
  if(o&&o.tiles?.length){try{await load(o);$('#sv').textContent='Restored ✓';return}catch(e){}}
